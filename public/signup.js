@@ -13,12 +13,14 @@ async function signup() {
         });
 
         if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Network response was not ok');
         }
 
         const result = await response.json();
         alert(result.message);
     } catch (error) {
         console.error('There has been a problem with your fetch operation:', error);
+        alert(error.message);
     }
 }

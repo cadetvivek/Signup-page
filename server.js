@@ -25,18 +25,32 @@ db.connect(err => {
 app.post('/signup', (req, res) => {
     console.log('Received signup request');
     const { name, email, password } = req.body;
-    console.log('Request body:', req.body);
 
-    const sql = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
-
-    db.query(sql, [name, email, password], (err, result) => {
+    // Check if the user already exists
+    const checkUserSql = 'SELECT * FROM users WHERE email = ?';
+    db.query(checkUserSql, [email], (err, results) => {
         if (err) {
-            console.error('Error inserting data:', err);
-            res.status(500).json({ message: 'Error inserting data' });
+            console.error('Error querying database:', err);
+            res.status(500).json({ message: 'Error querying database' });
             return;
         }
-        console.log('Data inserted:', result);
-        res.status(200).json({ message: 'Signup successful' });
+
+        if (results.length > 0) {
+            console.log('User already exists:', email);
+            res.status(400).json({ message: 'User already exists' });
+        } else {
+            // Insert new user
+            const insertUserSql = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
+            db.query(insertUserSql, [name, email, password], (err, result) => {
+                if (err) {
+                    console.error('Error inserting data:', err);
+                    res.status(500).json({ message: 'Error inserting data' });
+                    return;
+                }
+                console.log('Data inserted:', result);
+                res.status(200).json({ message: 'Signup successful' });
+            });
+        }
     });
 });
 
